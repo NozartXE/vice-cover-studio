@@ -1,14 +1,14 @@
 /* Vice Cover Studio — editor chrome. Dark, warm, sunset-adjacent; the cover itself does the shouting. */
 html, body { margin: 0; min-height: 100%; background: #17101f; color: #f4eef7; font: 15px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
-.topbar { display: flex; align-items: baseline; gap: 16px; padding: 10px 24px; border-bottom: 1px solid #3a2447; background: linear-gradient(90deg, #2a0a44, #7a2340 60%, #c65a2a); }
+.topbar { display: flex; align-items: baseline; gap: 16px; padding: 8px 24px; border-bottom: 1px solid #3a2447; background: linear-gradient(90deg, #2a0a44, #7a2340 60%, #c65a2a); }
 .brand { font-weight: 900; font-size: 20px; letter-spacing: 0.5px; white-space: nowrap; }
 .brand-mark { display: inline-block; background: #ffd23f; color: #1d0b2e; border-radius: 6px; padding: 1px 7px; margin-right: 6px; font-size: 16px; }
 .tagline { margin: 0; color: #ffe9d6; font-size: 13px; }
-.app { display: flex; gap: 22px; align-items: flex-start; justify-content: center; padding: 14px 24px 20px; box-sizing: border-box; }
-.controls { display: flex; flex-direction: column; gap: 10px; width: 330px; flex: none; }
+.app { display: flex; gap: 22px; align-items: flex-start; justify-content: center; padding: 10px 24px 32px; box-sizing: border-box; }
+.controls { display: flex; flex-direction: column; gap: 8px; width: 330px; flex: none; padding-bottom: 24px; }
 .controls h1 { margin: 0; font-size: 24px; }
 .hint { margin: 0; color: #c9b3d6; font-size: 13px; }
-fieldset { border: 1px solid #3a2447; border-radius: 10px; padding: 9px 12px; margin: 0; display: flex; flex-direction: column; gap: 8px; }
+fieldset { border: 1px solid #3a2447; border-radius: 10px; padding: 8px 12px; margin: 0; display: flex; flex-direction: column; gap: 7px; }
 legend { font-weight: 700; padding: 0 6px; }
 label { display: flex; flex-direction: column; gap: 6px; font-weight: 600; font-size: 13px; }
 label.check { flex-direction: row; align-items: center; gap: 8px; font-weight: 500; }
@@ -21,7 +21,7 @@ button[aria-pressed="true"] { background: #ffd23f; color: #1d0b2e; }
 .seg { display: flex; gap: 6px; }
 .seg button { flex: 1; background: #2c1b3d; color: #f4eef7; padding: 8px 4px; font-size: 13px; }
 .slots { gap: 8px; }
-.slot { display: flex; align-items: center; gap: 10px; border: 1px dashed #7a4a92; border-radius: 8px; padding: 8px 10px; cursor: pointer; }
+.slot { display: flex; align-items: center; gap: 10px; border: 1px dashed #7a4a92; border-radius: 8px; padding: 7px 10px; cursor: pointer; }
 .slot.dragging { border-color: #ffd23f; background: #3a2447; }
 .slot-name { font-weight: 700; font-size: 13px; }
 .slot-pick { padding: 6px 10px; font-size: 13px; }

@@ -94,8 +94,15 @@ export function drawPhotoPanel(ctx, rect, photo, crop, grade, label) {
   ctx.strokeRect(x, y, w, h);
 }
 
-/** The sunset/neon sky behind the title, with a glowing sun disc and a dark skyline. */
-export function drawTitleSky(ctx, x, y, w, h, grade) {
+/** The sunset/neon sky behind the title, with a glowing sun disc and a dark skyline.
+ * The sun sits low on the horizon, behind the skyline, so its disc never
+ * touches the title block (D4 fix); the skyline band starts at skylineTop —
+ * always below the subline — so no bar ever sits behind a letter (D1 fix). */
+export function drawTitleSky(ctx, x, y, w, h, grade, skylineTop) {
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(x, y, w, h);
+  ctx.clip();
   const sky = ctx.createLinearGradient(0, y, 0, y + h);
   sky.addColorStop(0, grade.skyTop);
   sky.addColorStop(0.45, grade.skyMid);
@@ -103,9 +110,11 @@ export function drawTitleSky(ctx, x, y, w, h, grade) {
   sky.addColorStop(1, grade.skyHorizon);
   ctx.fillStyle = sky;
   ctx.fillRect(x, y, w, h);
-  const sunX = x + w * 0.82;
-  const sunY = y + h * 0.52;
-  const sunR = Math.min(w, h) * 0.34;
+  // Low sun on the horizon, setting behind the skyline: clear of the title
+  // in every size, its lower half cut by the foot of the sky.
+  const sunX = x + w * 0.85;
+  const sunY = y + h * 0.98;
+  const sunR = Math.min(w, h) * 0.30;
   const glow = ctx.createRadialGradient(sunX, sunY, sunR * 0.2, sunX, sunY, sunR * 1.9);
   glow.addColorStop(0, grade.sunGlow);
   glow.addColorStop(1, 'rgba(255,190,100,0)');
@@ -115,17 +124,21 @@ export function drawTitleSky(ctx, x, y, w, h, grade) {
   ctx.beginPath();
   ctx.arc(sunX, sunY, sunR, 0, Math.PI * 2);
   ctx.fill();
-  // Low skyline silhouette along the foot of the sky.
+  // Low skyline silhouette along the foot of the sky, capped so its tallest
+  // bar stays below the subline.
   ctx.fillStyle = 'rgba(24,6,32,0.85)';
   const base = y + h;
+  const top = y + h * (skylineTop ?? 0.86);
+  const maxBh = base - top;
   let bx = x;
   const rnd = mulberry32(5);
   while (bx < x + w) {
     const bw = w * (0.02 + rnd() * 0.04);
-    const bh = h * (0.08 + rnd() * 0.16);
+    const bh = Math.min(maxBh, h * (0.04 + rnd() * 0.08));
     ctx.fillRect(bx, base - bh, bw, bh);
     bx += bw + w * 0.008;
   }
+  ctx.restore();
 }
 
 /** Fits text to maxWidth by shrinking from startSize; returns the size used. */
@@ -139,8 +152,13 @@ export function fitBlockSize(ctx, text, maxWidth, startSize, family) {
   return size;
 }
 
-/** The giant block title (up to two lines) plus subline, black-outlined for legibility. */
-export function drawTitleBlock(ctx, x, y, w, h, title, subline, grade) {
+/**
+ * Title-block layout, measured before anything is drawn: the title lines,
+ * then a clear-sky gap, then the subline, then the skyline band. The skyline
+ * may only start below the subline's bottom edge plus a margin, so the
+ * subline always sits in clear sky.
+ */
+export function layoutTitleBlock(ctx, w, h, title, subline) {
   const family = '"Arial Black", "Helvetica Neue", Arial, sans-serif';
   const words = (title || 'VICE CITY').trim().toUpperCase().split(/\s+/);
   let lines = [words.join(' ')];
@@ -156,15 +174,32 @@ export function drawTitleBlock(ctx, x, y, w, h, title, subline, grade) {
     ctx.font = `900 ${h * 0.42}px ${family}`;
     if (ctx.measureText(lines[0]).width > w * 0.94) lines = best.lines;
   }
-  const lineH = h * 0.34;
-  const startY = y + h * 0.52 - ((lines.length - 1) * lineH) / 2;
+  const two = lines.length > 1;
+  const lineH = h * (two ? 0.28 : 0.34);
+  const startSize = h * (two ? 0.30 : 0.38);
+  const sizes = lines.map((line) => fitBlockSize(ctx, line, w * 0.94, startSize, family));
+  const startY = h * (two ? 0.50 : 0.46) - ((lines.length - 1) * lineH) / 2;
+  const sub = (subline || '').trim().toUpperCase();
+  const subSize = Math.max(12, h * 0.11);
+  const titleBottom = startY + (lines.length - 1) * lineH + Math.max(...sizes) * 0.36;
+  const subY = sub
+    ? Math.max(titleBottom + subSize * 0.9, h * (two ? 0.84 : 0.74))
+    : h * 0.74;
+  const skylineTop = Math.min(0.96, (subY + subSize * 0.5) / h + 0.04);
+  return { family, lines, sizes, lineH, startY, sub, subSize, subY, skylineTop };
+}
+
+/** The giant block title (up to two lines) plus subline, black-outlined for legibility. */
+export function drawTitleBlock(ctx, x, y, w, h, title, subline, grade, layout) {
+  const { family, lines, sizes, lineH, startY, sub, subSize, subY } = layout
+    || layoutTitleBlock(ctx, w, h, title, subline);
   ctx.save();
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.lineJoin = 'round';
   lines.forEach((line, i) => {
-    const size = fitBlockSize(ctx, line, w * 0.94, h * 0.4, family);
-    const cy = startY + i * lineH;
+    const size = sizes[i];
+    const cy = y + startY + i * lineH;
     ctx.font = `900 ${size}px ${family}`;
     ctx.strokeStyle = '#12060a';
     ctx.lineWidth = Math.max(3, size * 0.14);
@@ -172,17 +207,14 @@ export function drawTitleBlock(ctx, x, y, w, h, title, subline, grade) {
     ctx.fillStyle = grade.titleFill;
     ctx.fillText(line, x + w / 2, cy);
   });
-  const sub = (subline || '').trim().toUpperCase();
   if (sub) {
-    const size = Math.max(12, h * 0.115);
-    ctx.font = `900 ${size}px ${family}`;
-    try { ctx.letterSpacing = `${Math.max(2, size * 0.22)}px`; } catch (e) { /* older canvas */ }
+    ctx.font = `900 ${subSize}px ${family}`;
+    try { ctx.letterSpacing = `${Math.max(2, subSize * 0.22)}px`; } catch (e) { /* older canvas */ }
     ctx.strokeStyle = '#12060a';
-    ctx.lineWidth = Math.max(2, size * 0.12);
-    const sy = y + h * 0.9;
-    ctx.strokeText(sub, x + w / 2, sy);
+    ctx.lineWidth = Math.max(2, subSize * 0.12);
+    ctx.strokeText(sub, x + w / 2, y + subY);
     ctx.fillStyle = grade.subline;
-    ctx.fillText(sub, x + w / 2, sy);
+    ctx.fillText(sub, x + w / 2, y + subY);
     try { ctx.letterSpacing = '0px'; } catch (e) { /* older canvas */ }
   }
   ctx.restore();
@@ -237,15 +269,18 @@ export function drawViceCover(canvas, state) {
   const h = canvas.height;
   const grade = GRADES[state.gradeName] || GRADES.sunset;
   const n = Math.min(3, Math.max(1, state.panels || 3));
-  const titleH = Math.round(h * 0.27);
+  const titleH = Math.round(h * 0.30);
   const ribbonH = Math.round(h * 0.10);
   const panelY = titleH;
   const panelH = h - titleH - ribbonH;
 
   ctx.fillStyle = '#1d0b2e';
   ctx.fillRect(0, 0, w, h);
-  drawTitleSky(ctx, 0, 0, w, titleH, grade);
-  drawTitleBlock(ctx, 0, 0, w, titleH, state.title, state.subline, grade);
+  // Measure the title layout first: the skyline band is capped below the
+  // subline, so the sky must know the layout before it is drawn.
+  const layout = layoutTitleBlock(ctx, w, titleH, state.title, state.subline);
+  drawTitleSky(ctx, 0, 0, w, titleH, grade, layout.skylineTop);
+  drawTitleBlock(ctx, 0, 0, w, titleH, state.title, state.subline, grade, layout);
 
   const gap = Math.max(3, Math.round(w * 0.006));
   const colW = (w - gap * (n + 1)) / n;
@@ -268,7 +303,7 @@ export function drawViceCover(canvas, state) {
 /** Panel rectangles in canvas pixels, for click-to-select in the editor. */
 export function vicePanelRects(canvasWidth, canvasHeight, panels) {
   const n = Math.min(3, Math.max(1, panels || 3));
-  const titleH = Math.round(canvasHeight * 0.27);
+  const titleH = Math.round(canvasHeight * 0.30);
   const ribbonH = Math.round(canvasHeight * 0.10);
   const gap = Math.max(3, Math.round(canvasWidth * 0.006));
   const colW = (canvasWidth - gap * (n + 1)) / n;
