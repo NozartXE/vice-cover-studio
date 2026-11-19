@@ -1,12 +1,51 @@
-html, body { margin: 0; height: 100%; background: #f2f0f4; color: #1d1b22; font: 15px/1.4 system-ui, sans-serif; }
-.app { display: flex; gap: 32px; align-items: center; justify-content: center; height: 100%; padding: 24px; box-sizing: border-box; }
-.controls { display: flex; flex-direction: column; gap: 14px; width: 280px; }
-.controls h1 { margin: 0; font-size: 28px; }
-.controls p { margin: 0; color: #5c5866; }
-label { display: flex; flex-direction: column; gap: 6px; font-weight: 600; }
-input[type=text] { font: inherit; padding: 8px; border: 1px solid #c9c4d1; border-radius: 6px; }
-button { font: inherit; font-weight: 700; padding: 10px; border: 0; border-radius: 6px; background: #1d1b22; color: #fff; cursor: pointer; }
-canvas { width: min(70vh, 60vw); height: min(70vh, 60vw); box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2); }
-body.shot-cover .controls { display: none; }
+/* Vice Cover Studio — editor chrome. Dark, warm, sunset-adjacent; the cover itself does the shouting. */
+html, body { margin: 0; min-height: 100%; background: #17101f; color: #f4eef7; font: 15px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+.topbar { display: flex; align-items: baseline; gap: 16px; padding: 10px 24px; border-bottom: 1px solid #3a2447; background: linear-gradient(90deg, #2a0a44, #7a2340 60%, #c65a2a); }
+.brand { font-weight: 900; font-size: 20px; letter-spacing: 0.5px; white-space: nowrap; }
+.brand-mark { display: inline-block; background: #ffd23f; color: #1d0b2e; border-radius: 6px; padding: 1px 7px; margin-right: 6px; font-size: 16px; }
+.tagline { margin: 0; color: #ffe9d6; font-size: 13px; }
+.app { display: flex; gap: 22px; align-items: flex-start; justify-content: center; padding: 14px 24px 20px; box-sizing: border-box; }
+.controls { display: flex; flex-direction: column; gap: 10px; width: 330px; flex: none; }
+.controls h1 { margin: 0; font-size: 24px; }
+.hint { margin: 0; color: #c9b3d6; font-size: 13px; }
+fieldset { border: 1px solid #3a2447; border-radius: 10px; padding: 9px 12px; margin: 0; display: flex; flex-direction: column; gap: 8px; }
+legend { font-weight: 700; padding: 0 6px; }
+label { display: flex; flex-direction: column; gap: 6px; font-weight: 600; font-size: 13px; }
+label.check { flex-direction: row; align-items: center; gap: 8px; font-weight: 500; }
+input[type=text] { font: inherit; padding: 9px 10px; border: 1px solid #5b3a6e; border-radius: 7px; background: #241631; color: #fff; }
+input[type=range] { width: 100%; accent-color: #ff7a30; }
+button { font: inherit; font-weight: 700; padding: 10px 12px; border: 0; border-radius: 8px; background: #ff7a30; color: #1d0b2e; cursor: pointer; }
+button:hover { filter: brightness(1.08); }
+button.ghost { background: #2c1b3d; color: #ffe9d6; border: 1px solid #5b3a6e; }
+button[aria-pressed="true"] { background: #ffd23f; color: #1d0b2e; }
+.seg { display: flex; gap: 6px; }
+.seg button { flex: 1; background: #2c1b3d; color: #f4eef7; padding: 8px 4px; font-size: 13px; }
+.slots { gap: 8px; }
+.slot { display: flex; align-items: center; gap: 10px; border: 1px dashed #7a4a92; border-radius: 8px; padding: 8px 10px; cursor: pointer; }
+.slot.dragging { border-color: #ffd23f; background: #3a2447; }
+.slot-name { font-weight: 700; font-size: 13px; }
+.slot-pick { padding: 6px 10px; font-size: 13px; }
+.slot-drop { color: #c9b3d6; font-size: 12px; }
+.fine { margin: 0; color: #b39ec4; font-size: 12px; }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.actions button { flex: 1 1 45%; }
+.actions .export { flex: 1 1 45%; }
+.actions .primary { background: #ffd23f; }
+button.just-exported { outline: 3px solid #2ee6a8; outline-offset: 2px; }
+#status { margin: 0; min-height: 1.2em; color: #2ee6a8; font-weight: 600; font-size: 13px; }
+.preview { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 14px; min-width: 0; }
+#cover { max-width: 100%; max-height: calc(100vh - 150px); box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5); border-radius: 4px; }
+.empty-state { text-align: center; background: #241631; border: 1px solid #3a2447; border-radius: 10px; padding: 14px 22px; max-width: 520px; }
+.empty-state p { margin: 4px 0; }
+.empty-state button { margin-top: 8px; }
+/* Screenshot scenes: cover alone fills the frame; editor keeps the full layout. */
+body.shot-cover .topbar, body.shot-cover .controls { display: none; }
 body.shot-cover .app { padding: 0; }
-body.shot-cover canvas { width: 100vw; height: 100vh; box-shadow: none; }
+body.shot-cover .preview { width: 100%; }
+body.shot-cover #cover { width: 100vw; height: 100vh; max-height: none; box-shadow: none; border-radius: 0; }
+body.shot-cover .empty-state { display: none; }
+@media (max-width: 900px) {
+  .app { flex-direction: column; }
+  .controls { width: 100%; }
+  .topbar { flex-wrap: wrap; }
+}
